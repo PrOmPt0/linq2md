@@ -59,7 +59,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Builder.cs" />
-    <Compile Include="BuilderCPPExtension.cs" />
     <Compile Include="BuilderExtension.cs" />
     <Compile Include="BuilderHTMLExtension.cs" />
     <Compile Include="Config.cs" />
@@ -93,7 +92,7 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Test\db.xsqlite" />
+    <None Include="Test\test.md" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
@@ -103,7 +102,7 @@ if  exist %25testPath%25 (
 )
 mkdir %25testPath%25
  
-copy /y           "$(ProjectDir)Test\db.xsqlite"    "%25testPath%25\db.xsqlite"
+copy /y           "$(ProjectDir)Test\test.md"    "%25testPath%25\test.md"
 </PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
