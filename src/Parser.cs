@@ -7,84 +7,90 @@ using System.Text;
 
 namespace linq2md {
     public static class Parser {
+        public static MarkDown Parse(this string file) {
+            var md = new MarkDown();
 
-        private static IEnumerable<string> Format(this string protocolFileName) {
-            var allText=File.ReadAllText(protocolFileName);
-            var lines=new List<string>();
-            var level=0;
-            int index=0;
-            int count=allText.Length;
-            var line=new StringBuilder();
-            while (index<count) {
-                char c=allText[index++];
-                if (c=='\r'||
-                    c=='\n') {
-                    //line.Append(' ');
-                    continue;
-                }
+            var lines = File.ReadAllLines(file).ToList();
 
-                if (c=='{') {
-                    var space=new string('\t', level);
-                    lines.Add(string.Format("{0}{1}", space, line.ToString().Trim()));
-                    lines.Add(string.Format("{0}{{", space));
-                    line.Clear();
-                    level++;
-                    continue;
-                }
-                if (c=='}') {
-                    var preLine=line.ToString().Trim();
-                    if (!string.IsNullOrEmpty(preLine)) {
-                        var space1=new string('\t', level);
-                        lines.Add(string.Format("{0}{1}", space1, preLine));
+            IEnumerable<Element> sections = lines.ParseSections();
+
+            md.RootElements = sections.ToList();
+
+            return md;
+        }
+
+        private static List<Element> ParseElement(this List<string> lines, int index) {
+            return null;
+        }
+
+        private static IEnumerable<Section> ParseSections(this List<string> lines) {
+            var sections = new List<Section>();
+            var index = 0;
+
+            Section section = null;
+            var sectionValues = new List<string>();
+            while (index < lines.Count) {
+                var l = lines[index++];
+
+                // begin sectoin
+                if (l.StartsWith("#")) {
+                    var newSection = new Section();
+                    var title = l.ParseTitle();
+                    newSection.Level = title.Item1;
+                    newSection.Indent = 0;
+                    newSection.Title = title.Item2;
+
+                    if (section != null) {
+                        section.Values = sectionValues.ParseValues();
+
+                        if (section.Level < newSection.Level) {
+                            section.SubSectons.Add(newSection);
+                        } else {
+                            var back = section.Level - newSection.Level+1;
+                            Section parent = null;
+                            while ((back--)>0) {
+                                parent = section.Parent;
+                                if (parent == null)
+                                    break;
+                            }
+                            if (parent != null) {
+                                parent.SubSectons.Add(newSection);
+                            } else {
+                                sections.Add(newSection);
+                            }
+                        }        
                     }
 
-                    level--;
-                    var space=new string('\t', level);
+                    section = newSection;
 
-                    int j=index;
-                    bool f=false;
-                    while (index<count) {
-                        c=allText[j++];
-                        if (c==' ') {
-                            continue;
-                        }
-                        if (c==';') {
-                            f=true;
-                            index=j;
-                            break;
-                        }
-                        break;
-                    }
-                    lines.Add(string.Format("{0}}}{1}\r\n", space, f?";":""));
-                    line.Clear();
-                    continue;
-                }
-                if (c==';') {
-                    line.Append(c);
-                    var space=new string('\t', level);
-                    lines.Add(string.Format("{0}{1}", space, line.ToString().Trim()));
-                    line.Clear();
                     continue;
                 }
 
-                // Ignore single line comment
-                if (c=='/') {
-                    int j=index;
-                    line.Append(c);
-                    while (index<count) {
-                        c=allText[j++];
-                        if (c=='\r'||
-                            c=='\n') {
-                            break;
-                        }
-                    }
-                    line.Clear();
-                    index=j;
-                    continue;
+                if (section != null) {
+                    sectionValues.Add(l);
                 }
-                line.Append(c);
             }
-            return lines.Where(l=>!string.IsNullOrWhiteSpace(l)).Select(l=>l.Trim());
+
+            return sections;
+        }
+
+        private static Tuple<int, Element> ParseTitle(this string line) {
+            int level = 0;
+            while (line[level++] == '#') {
+                //
+            }
+
+            return Tuple.Create(level, line.Substring(level).ParseLine());
+        }
+
+        private static List<Element> ParseValues(this List<string> values) {
+            // TODO:
+            return null;
+        }
+
+        private static Element ParseLine(this string line) {
+            // TODO:
+            return null;
         }
     }
 }

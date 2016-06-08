@@ -8,8 +8,8 @@
     <ProjectGuid>{955D02CE-42CE-41A9-9E68-8A6C74A36EF5}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>xsqlite</RootNamespace>
-    <AssemblyName>xsqlite</AssemblyName>
+    <RootNamespace>linq2md</RootNamespace>
+    <AssemblyName>linq2md</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
@@ -59,8 +59,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Builder.cs" />
-    <Compile Include="BuilderExtension.cs" />
-    <Compile Include="BuilderHTMLExtension.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="Emiter.cs" />
     <Compile Include="MarkDown.cs" />

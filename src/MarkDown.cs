@@ -51,17 +51,17 @@ namespace linq2md {
     public class Element{
         public int Level{
             get;
-            private set;
+            set;
         }
 
         public int Indent {
             get;
-            private set;
+            set;
         }
 
         public Kind Kind{
             get;
-            private set;
+            set;
         }
     }
 
@@ -75,6 +75,10 @@ namespace linq2md {
             set;
         }
         public List<Section> SubSectons {
+            get;
+            set;
+        }
+        public Section Parent {
             get;
             set;
         }
@@ -154,6 +158,7 @@ namespace linq2md {
         
     }
 
+    // Support Main languages
     public enum Language {
         C,
         CPP,
@@ -167,9 +172,11 @@ namespace linq2md {
         Go,
         Python,
         PHP,
-        APL,
-        Forth,
-        Haskell
+        Json,
+        Xml,
+        MarkDown,
+        Tex,
+        CSS
     }
 
     public class Line : Element {
