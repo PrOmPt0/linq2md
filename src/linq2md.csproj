@@ -61,8 +61,33 @@
     <Compile Include="Builder.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="Emiter.cs" />
+    <Compile Include="Helpers\Common.cs" />
+    <Compile Include="Helpers\DebuggingReporter.cs" />
     <Compile Include="MarkDown.cs" />
     <Compile Include="Parser.cs" />
+    <Compile Include="Parser\Blocks\CodeBlock.cs" />
+    <Compile Include="Parser\Blocks\HeaderBlock.cs" />
+    <Compile Include="Parser\Blocks\HorizontalRuleBlock.cs" />
+    <Compile Include="Parser\Blocks\LinkReferenceBlock.cs" />
+    <Compile Include="Parser\Blocks\ListBlock.cs" />
+    <Compile Include="Parser\Blocks\ParagraphBlock.cs" />
+    <Compile Include="Parser\Blocks\QuoteBlock.cs" />
+    <Compile Include="Parser\Blocks\TableBlock.cs" />
+    <Compile Include="Parser\Inlines\BoldTextInline.cs" />
+    <Compile Include="Parser\Inlines\CodeInline.cs" />
+    <Compile Include="Parser\Inlines\HyperlinkInline.cs" />
+    <Compile Include="Parser\Inlines\Interface\IInlineContainer.cs" />
+    <Compile Include="Parser\Inlines\Interface\IInlineLeaf.cs" />
+    <Compile Include="Parser\Inlines\Interface\ILinkElement.cs" />
+    <Compile Include="Parser\Inlines\Interface\ItalicTextInline.cs" />
+    <Compile Include="Parser\Inlines\MarkdownLinkInline.cs" />
+    <Compile Include="Parser\Inlines\StrikethroughTextInline.cs" />
+    <Compile Include="Parser\Inlines\SuperscriptTextInline.cs" />
+    <Compile Include="Parser\Inlines\TextRunInline.cs" />
+    <Compile Include="Parser\MarkdownBlock.cs" />
+    <Compile Include="Parser\MarkdownDocument.cs" />
+    <Compile Include="Parser\MarkdownElement.cs" />
+    <Compile Include="Parser\MarkdownInline.cs" />
     <Compile Include="RegexExtension.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -91,6 +116,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Test\test.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\base.css" />
+    <EmbeddedResource Include="Resources\math.js" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

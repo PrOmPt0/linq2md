@@ -54,6 +54,12 @@ namespace linq2md {
                 case Kind.Section:
                     code.EmitSection(e as Section);
                     break;
+                case Kind.BlockQuote:
+                    code.EmitBlockQuote(e as Blockquote);
+                    break;
+                case Kind.BlockLine:
+                    code.EmitBlockLine(e as Seq);
+                    break;
                 case Kind.Cell:
                     code.EmitCell(e as Cell);
                     break;
@@ -64,7 +70,7 @@ namespace linq2md {
                     code.EmitTable(e as Table);
                     break;
                 case Kind.List:
-                    code.EmitOrdedList(e as List);
+                    code.EmitList(e as List);
                     break;
                 case Kind.Line:
                     code.EmitLine(e as Line);
@@ -107,7 +113,7 @@ namespace linq2md {
             var h = string.Format("h{0}", level);
             var id = title.ToString();
             code.Begin(h, "id".v(id))
-                .EmitElement(title)
+                .EmitElement(title.Title)
                 .End(h);
 
             foreach (var v in title.Values) {
@@ -152,35 +158,53 @@ namespace linq2md {
             return code;
         }
 
-        private static StringBuilder EmitOrdedList(this StringBuilder code, List list) {
+        private static StringBuilder EmitList(this StringBuilder code, List list) {
             var tag = list.ListKind == ListKind.Order ? "ol" : "ul";
+
+            if(list.Value!=null){
+                code.EmitElement(list.Value);
+            }
+
             code.Begin(tag);
             foreach (var i in list.Items) {
-                code.Begin("li")
-                    .EmitElement(i)
-                    .End("li");
+                code.Begin("li");
+
+                if(i.Kind == Kind.List){
+                    code.EmitList(i as List);
+                }else{
+                    code.EmitElement(i);
+                }
+                code.End("li");
             }
+
             code.End(tag);
+            
             return code;
         }
 
         private static StringBuilder EmitLine(this StringBuilder code, Line l) {
             // TODO(fanfeilong): 引入code parser，做高级高亮
-            code.Append(string.Format("{0}{1}",new string(' ',l.Indent),l.Value));
+            code.AppendFormat("{0}{1}\n",new string(' ',l.Indent),l.Value);
             return code;
         }
 
         private static StringBuilder EmitCode(this StringBuilder code, Code c) {
+            
+            if(c.CodeKind == CodeKind.Block){
+                code.Begin("pre", "class".v("prettyprint"))
+                    .Begin("code", "class".v("hljs cs"));
 
-            code.Begin("pre", "class".v("prettyprint"))
-                .Begin("code", "class".v("hljs cs"));
+                foreach (var l in c.Lines){
+                    code.EmitLine(l);
+                }
 
-            foreach (var l in c.Lines) {
-                code.EmitLine(l);
+                code.End("code")
+                    .End("pre");
+            }else{
+                code.Begin("code");
+                code.Append(c.Lines[0].Value);
+                code.End("code");
             }
-
-            code.End("code")
-                .End("pre");
 
             return code;
         }
@@ -216,10 +240,10 @@ namespace linq2md {
             return code;
         }
 
-        private static StringBuilder EmitStronger(this StringBuilder code, Stronger text) {
-            code.Begin("strong")
-                .Append(text.Value)
-                .End("strong");
+        private static StringBuilder EmitStronger(this StringBuilder code, Stronger text){
+            code.Begin("strong");
+            code.EmitElement(text.Value);    
+            code.End("strong");
             return code;
         }
 
@@ -231,9 +255,9 @@ namespace linq2md {
         }
 
         private static StringBuilder EmitDelete(this StringBuilder code, Delete text) {
-            code.Begin("del")
-                 .Append(text.Value)
-                 .End("del");
+            code.Begin("del");
+            code.EmitElement(text.Value);     
+            code.End("del");
             return code;
         }
 
@@ -243,6 +267,13 @@ namespace linq2md {
                 code.EmitElement(q);
             }    
             code.End("blockquote");
+            return code;
+        }
+
+        private static StringBuilder EmitBlockLine(this StringBuilder code,Seq line){
+            foreach (var element in line.Values){
+                code.EmitElement(element);
+            }
             return code;
         }
 
