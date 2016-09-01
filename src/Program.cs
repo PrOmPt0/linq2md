@@ -6,13 +6,14 @@ using System.Reflection;
 namespace linq2md {
     class Program {
         public static void Main(string[] args) {
-            if (args.Length!=1){
+            if (args.Length!=2){
                 PrintUseage();
                 return;
             }
             //try{
-                // Parse Config
-                var md = Path.Combine(Environment.CurrentDirectory, args[0]);
+            // Parse Config
+                UniversalMarkdown.Parse.MarkdownDocument.TabSize = Convert.ToInt32(args[0]);
+                var md = Path.Combine(Environment.CurrentDirectory, args[1]);
 
                 // Run
                 Run(md);

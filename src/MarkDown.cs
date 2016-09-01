@@ -23,6 +23,8 @@ namespace linq2md {
         Delete,
         BlockQuote,
         BlockLine,
+        Seq,
+        HorizontalRule
     }
     
     public enum CellKind {
@@ -281,7 +283,7 @@ namespace linq2md {
         }
         public Seq(){
             Values = new List<Element>();
-            Kind = Kind.BlockLine;
+            Kind = Kind.Seq;
         }
     }
 
@@ -292,6 +294,16 @@ namespace linq2md {
         }
         public Text(){
             Kind = Kind.Text;
+        }
+    }
+
+    public class Rule : Element {
+        public string Value {
+            get;
+            set;
+        }
+        public Rule() {
+            Kind = Kind.HorizontalRule;
         }
     }
 

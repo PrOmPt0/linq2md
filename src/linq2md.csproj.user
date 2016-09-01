@@ -4,6 +4,6 @@
     <ProjectView>ShowAllFiles</ProjectView>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <StartArguments>./test2.md</StartArguments>
+    <StartArguments>2 ./programming-in-linux.md</StartArguments>
   </PropertyGroup>
 </Project>

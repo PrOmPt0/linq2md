@@ -90,34 +90,18 @@ namespace linq2md {
                     return hyperlink;
                 case MarkdownBlockType.HorizontalRule:
                     var hr = block as HorizontalRuleBlock;
-                    return new Text{Value = hr.ToString()};
+                    return new Rule { Value = hr.ToString()};
                 case MarkdownBlockType.List:
                     var listBlock = block as ListBlock;
                     var list = new List();
-                    var listKind = listBlock.Style == ListStyle.Numbered ? ListKind.Order : ListKind.UnOrder;
+                    list.ListKind = listBlock.Style == ListStyle.Numbered ? ListKind.Order : ListKind.UnOrder;
+
                     foreach (var listItemBlock in listBlock.Items){
-                        var item=listItemBlock.Blocks[0].Block2Element().Paragraph2Seq();
-
-                        if(listItemBlock.Blocks.Count>1){
-                            var subList=new List();
-                            subList.Value=item;
-                            subList.ListKind = listKind;
-
-                            var subListBox = listItemBlock.Blocks[1] as ListBlock;
-                            var subItems = subListBox.Items;
-                            
-                            foreach (var subItem in subItems){
-                                var seqs = new Seq();
-                                seqs.Values.AddRange(subItem.Blocks.Select(s => s.Block2Element().Paragraph2Seq()));
-                                subList.Items.Add(seqs);
-                            }
-
-                            list.Items.Add(subList);
-                        }else{
-                            list.Items.Add(item);
+                        foreach (var b in listItemBlock.Blocks) {
+                            var e = b.Block2Element();
+                            list.Items.Add(e);
                         }
                     }
-                    list.ListKind = listKind;
                     return list;
                 default:
                     return null;

@@ -102,8 +102,26 @@ namespace linq2md {
                 case Kind.Delete:
                     code.EmitDelete(e as Delete);
                     break;
+                case Kind.Seq:
+                    code.EmitSeq(e as Seq);
+                    break;
+                case Kind.HorizontalRule:
+                    code.EmitRule(e as Rule);
+                    break;
                 default:
                     break;
+            }
+            return code;
+        }
+
+        private static StringBuilder EmitRule(this StringBuilder code, Rule r) {
+            code.Append("<hr/>");
+            return code;
+        }
+
+        private static StringBuilder EmitSeq(this StringBuilder code, Seq seq) {
+            foreach (var s in seq.Values) {
+                code.EmitElement(s);
             }
             return code;
         }
@@ -167,14 +185,13 @@ namespace linq2md {
 
             code.Begin(tag);
             foreach (var i in list.Items) {
-                code.Begin("li");
-
                 if(i.Kind == Kind.List){
                     code.EmitList(i as List);
                 }else{
+                    code.Begin("li");
                     code.EmitElement(i);
+                    code.End("li");
                 }
-                code.End("li");
             }
 
             code.End(tag);
@@ -218,9 +235,9 @@ namespace linq2md {
         }
 
         private static StringBuilder EmitHyperLink(this StringBuilder code, HyperLink link ){
-
+            
             code.Begin("a","href".v(link.Url.AbsoluteUri))
-                .Append(link.Text)
+                .EmitElement(link.Text)
                 .End("a");
 
             return code;

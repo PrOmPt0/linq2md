@@ -24,6 +24,9 @@ namespace UniversalMarkdown.Parse {
     /// A class used to represent abstract markdown.
     /// </summary>
     public class MarkdownDocument : MarkdownBlock {
+
+        public static int TabSize = 4;
+
         private Dictionary<string, LinkReferenceBlock> references;
 
         /// <summary>
@@ -213,6 +216,7 @@ namespace UniversalMarkdown.Parse {
 
                         // **CodeBlock**
                         if (newBlockElement==null&&(nonSpaceChar=='`'||nonSpacePos>startOfLine)) {
+                            var str = markdown.Substring(realStartOfLine);
                             newBlockElement=CodeBlock.Parse(markdown, realStartOfLine, end, quoteDepth, out endOfBlock);
                         }
 

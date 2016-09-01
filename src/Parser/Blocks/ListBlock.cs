@@ -73,12 +73,12 @@ namespace UniversalMarkdown.Parse.Elements {
             while (i<space.Length){
                 char c=space[i++];
                 if(c=='\t'){
-                    s += 4;
+                    s += MarkdownDocument.TabSize;
                 }else if(c==' '){
                     s += 1;
                 }    
             }
-            return Math.Max(1, 1+(s-1)/4);
+            return Math.Max(1, 1+(s-1)/ MarkdownDocument.TabSize);
         }
 
         /// <summary>
@@ -99,7 +99,9 @@ namespace UniversalMarkdown.Parse.Elements {
             var level = 0;
             var lastLevel = -1;
             var previousLineWasBlank=false;
-
+            var previousLineWasListHeader = false;
+            var isCodeBlock = false;
+            var lastStype=ListStyle.Bulleted;
             foreach (var lineInfo in Common.ParseLines(markdown, start, maxEnd, quoteDepth)){
 
                 // Is this line blank?
@@ -115,6 +117,7 @@ namespace UniversalMarkdown.Parse.Elements {
                     }
 
                     if (listItemPreamble!=null) {
+                        previousLineWasListHeader = true;
                         // Yes, this line contains a list item.
 
                         // Determining the nesting level is done as follows:
@@ -127,13 +130,14 @@ namespace UniversalMarkdown.Parse.Elements {
                         //    is two levels deep (but no deeper than one level more than the
                         //    previous list item).
                         // 5. Etcetera.
-                        
+
                         var info=markdown.Substring(lineInfo.StartOfLine, lineInfo.EndOfLine-lineInfo.StartOfLine);
-                        if(info.Contains("test")){
-                            int ii = 0;
-                        }
+                        Console.WriteLine(info);
 
                         // Stack
+                        if (markdown.Substring(lineInfo.StartOfLine).TrimStart().StartsWith("- [gdb with lua")) {
+                            int jj = 0;
+                        }
                         int spaceCount=lineInfo.FirstNonWhitespaceChar-lineInfo.StartOfLine;
                         level=GetLevel(markdown.Substring(lineInfo.StartOfLine,spaceCount));
                         if(level>lastLevel){
@@ -143,6 +147,7 @@ namespace UniversalMarkdown.Parse.Elements {
                                 Style=listItemPreamble.Style,
                                 Items=new List<ListItemBlock>()
                             };
+                            lastStype = newlistToAddTo.Style;
                             listStack.Push(newlistToAddTo);
                             if(currentListItem!=null){
                                 currentListItem.Blocks.Add(newlistToAddTo);    
@@ -183,8 +188,8 @@ namespace UniversalMarkdown.Parse.Elements {
                         // 1-4 spaces = first level.        //
                         // 5-8 spaces = second level, etc.  // 
                         // -------------------------------- //
-
-                        if (previousLineWasBlank) {
+                        bool codeTag = false;
+                        if ((previousLineWasBlank)&&(!isCodeBlock)) {
                             // This is the start of a new paragraph.
                             int spaceCount=lineInfo.FirstNonWhitespaceChar-lineInfo.StartOfLine;
                             if (spaceCount==0)
@@ -198,10 +203,41 @@ namespace UniversalMarkdown.Parse.Elements {
                             listToAddTo=listStack.Peek();
                             currentListItem=listToAddTo.Items[listToAddTo.Items.Count-1];
                             currentListItem.Blocks.Add(new ListItemBuilder());
-                            AppendTextToListItem(currentListItem, markdown, Math.Min(lineInfo.FirstNonWhitespaceChar, lineInfo.StartOfLine+(level+1)*4), lineInfo.EndOfLine);
+                            codeTag = AppendTextToListItem(currentListItem, markdown, Math.Min(lineInfo.FirstNonWhitespaceChar, lineInfo.StartOfLine+(level+1)*4), lineInfo.EndOfLine);
+                            if (codeTag) {
+                                isCodeBlock = !isCodeBlock;
+                            }
                         } else {
                             // Inline text.
-                            AppendTextToListItem(currentListItem, markdown, lineInfo.FirstNonWhitespaceChar, lineInfo.EndOfLine);
+                            if (previousLineWasListHeader) {
+                                //currentListItem = new ListItemBlock {
+                                //    Blocks = new List<MarkdownBlock>()
+                                //};
+                                //listToAddTo.Items.Add(currentListItem);
+                                var newlistToAddTo = new ListBlock {
+                                    Style = lastStype,
+                                    Items = new List<ListItemBlock>()
+                                };
+                                listStack.Push(newlistToAddTo);
+                                if (currentListItem != null) {
+                                    currentListItem.Blocks.Add(newlistToAddTo);
+                                }
+
+                                listToAddTo = newlistToAddTo;
+
+                                // Add a new list item.
+                                currentListItem = new ListItemBlock {
+                                    Blocks = new List<MarkdownBlock>()
+                                };
+                                listToAddTo.Items.Add(currentListItem);
+
+                                lastLevel = lastLevel + 1;
+                            }
+                            codeTag = AppendTextToListItem(currentListItem, markdown, lineInfo.FirstNonWhitespaceChar, lineInfo.EndOfLine);
+                        }
+                        previousLineWasListHeader = false;
+                        if (codeTag) {
+                            isCodeBlock = !isCodeBlock;
                         }
                     }
 
@@ -235,31 +271,36 @@ namespace UniversalMarkdown.Parse.Elements {
             // A numbered list starts with a number, then a period ('.'), then a space.
             // A bulleted list starts with a star ('*'), dash ('-') or plus ('+'), then a period, then a space.
             ListStyle style;
-            if (markdown[start]=='*'||markdown[start]=='-'||markdown[start]=='+') {
-                style=ListStyle.Bulleted;
+            if (markdown[start] == '*' || markdown[start] == '-' || markdown[start] == '+') {
+                style = ListStyle.Bulleted;
                 start++;
-            } else if (markdown[start]>='0'&&markdown[start]<='9') {
-                style=ListStyle.Numbered;
+            } else if (markdown[start] >= '0' && markdown[start] <= '9') {
+                style = ListStyle.Numbered;
                 start++;
 
                 // Skip any other digits.
-                while (start<maxEnd) {
-                    char c=markdown[start];
-                    if (c<'0'||c>'9')
+                while (start < maxEnd) {
+                    char c = markdown[start];
+                    if (c < '0' || c > '9') {
                         break;
+                    }
                     start++;
                 }
 
                 // Next should be a period ('.').
-                if (start==maxEnd||markdown[start]!='.')
+                if (start == maxEnd || markdown[start] != '.') {
                     return null;
+                }
+                
                 start++;
-            } else
+            } else {
                 return null;
+            }
 
             // Next should be a space.
-            if (start==maxEnd||(markdown[start]!=' '&&markdown[start]!='\t'))
+            if (start == maxEnd || (markdown[start] != ' ' && markdown[start] != '\t')) {
                 return null;
+            }
             start++;
 
             // This is a valid list item.
@@ -276,7 +317,7 @@ namespace UniversalMarkdown.Parse.Elements {
         /// <param name="markdown"></param>
         /// <param name="start"></param>
         /// <param name="end"></param>
-        private static void AppendTextToListItem(ListItemBlock listItem, string markdown, int start, int end) {
+        private static bool AppendTextToListItem(ListItemBlock listItem, string markdown, int start, int end) {
             ListItemBuilder listItemBuilder=null;
             if (listItem.Blocks.Count>0)
                 listItemBuilder=listItem.Blocks[listItem.Blocks.Count-1] as ListItemBuilder;
@@ -286,14 +327,22 @@ namespace UniversalMarkdown.Parse.Elements {
                 listItem.Blocks.Add(listItemBuilder);
             }
             var builder=listItemBuilder.Builder;
-            if (builder.Length>=2&&
-                Common.IsWhiteSpace(builder[builder.Length-2])&&
-                Common.IsWhiteSpace(builder[builder.Length-1])) {
-                builder.Length-=2;
+            if (builder.Length >= 2 &&
+                Common.IsWhiteSpace(builder[builder.Length - 2]) &&
+                Common.IsWhiteSpace(builder[builder.Length - 1])) {
+                builder.Length -= 2;
                 builder.AppendLine();
-            } else if (builder.Length>0)
+            } else if (builder.Length > 0) {
                 builder.Append(' ');
-            builder.Append(markdown.Substring(start, end-start));
+            }
+            var str = markdown.Substring(start, end - start);
+            bool codeTag = false;
+            if (str.StartsWith("```")) {
+                builder.AppendLine();
+                codeTag = true;
+            }
+            builder.AppendLine(str);
+            return codeTag;
         }
 
         /// <summary>
@@ -316,20 +365,24 @@ namespace UniversalMarkdown.Parse.Elements {
                 var newBlockList=new List<MarkdownBlock>();
                 foreach (var block in listItem.Blocks) {
                     if (block is ListItemBuilder) {
-                        var blockText=((ListItemBuilder)block).Builder.ToString();
+                        var blockText = ((ListItemBuilder)block).Builder.ToString();
+                        if (blockText.TrimStart().StartsWith("```")) {
+                            useBlockParser = true;
+                        }
                         if (useBlockParser) {
                             // Parse the list item as a series of blocks.
                             int actualEnd;
                             newBlockList.AddRange(MarkdownDocument.Parse(blockText, 0, blockText.Length, quoteDepth: 0, actualEnd: out actualEnd));
-                            usedBlockParser=true;
+                            usedBlockParser = true;
                         } else {
                             // Don't allow blocks.
-                            var paragraph=new ParagraphBlock();
-                            paragraph.Inlines=Common.ParseInlineChildren(blockText, 0, blockText.Length);
+                            var paragraph = new ParagraphBlock();
+                            paragraph.Inlines = Common.ParseInlineChildren(blockText, 0, blockText.Length);
                             newBlockList.Add(paragraph);
                         }
-                    } else
+                    } else {
                         newBlockList.Add(block);
+                    }
                 }
                 listItem.Blocks=newBlockList;
             }
