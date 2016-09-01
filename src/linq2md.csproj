@@ -61,6 +61,7 @@
     <Compile Include="Builder.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="Emiter.cs" />
+    <Compile Include="FileEncoding.cs" />
     <Compile Include="Helpers\Common.cs" />
     <Compile Include="Helpers\DebuggingReporter.cs" />
     <Compile Include="MarkDown.cs" />

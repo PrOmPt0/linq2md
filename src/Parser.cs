@@ -9,10 +9,73 @@ using UniversalMarkdown.Parse.Elements;
 
 namespace linq2md {
     public static class Parser{
+        public static bool IsUTF8(byte[] str) {
+            int c = 0, b = 0;
+            int i;
+            int bits = 0;
+            int len = str.Length;
+
+            for (i = 0; i < len; i++) {
+                c = str[i];
+                if (c > 128) {
+                    if ((c >= 254))
+                        return false;
+                    else if (c >= 252)
+                        bits = 6;
+                    else if (c >= 248)
+                        bits = 5;
+                    else if (c >= 240)
+                        bits = 4;
+                    else if (c >= 224)
+                        bits = 3;
+                    else if (c >= 192)
+                        bits = 2;
+                    else
+                        return false;
+
+                    if ((i + bits) > len)
+                        return false;
+                    while (bits > 1) {
+                        i++;
+                        b = str[i];
+                        if (b < 128 || b > 191)
+                            return false;
+                        bits--;
+                    }
+                }
+            }
+            return true;
+        }
+        public static Encoding DetectEncoding(string filePath) {
+            // *** Use Default of Encoding.Default (Ansi CodePage)
+            Encoding enc = Encoding.Default;
+
+            // *** Detect byte order mark if any - otherwise assume default
+            byte[] buffer = new byte[5];
+            FileStream file = new FileStream(filePath, FileMode.Open);
+            file.Read(buffer, 0, 5);
+            file.Close();
+
+            if (buffer[0] == 0xef && buffer[1] == 0xbb && buffer[2] == 0xbf)
+                enc = Encoding.UTF8;
+            else if (buffer[0] == 0xfe && buffer[1] == 0xff)
+                enc = Encoding.Unicode;
+            else if (buffer[0] == 0 && buffer[1] == 0 && buffer[2] == 0xfe && buffer[3] == 0xff)
+                enc = Encoding.UTF32;
+            else if (buffer[0] == 0x2b && buffer[1] == 0x2f && buffer[2] == 0x76)
+                enc = Encoding.UTF7;
+            else {
+                // TODO
+                Console.WriteLine("Did NOT found bom header, process as ANSI encoding...");
+            }
+
+            Console.WriteLine("File Encoding Is:{0}",enc.ToString());
+            return enc;
+        }
 
         public static MarkDown Parse(this string file){
             var doc = new MarkdownDocument();
-            doc.Parse(File.ReadAllText(file));
+            doc.Parse(File.ReadAllText(file, DetectEncoding(file)));
             return doc.Block2Element() as MarkDown;
         }
 

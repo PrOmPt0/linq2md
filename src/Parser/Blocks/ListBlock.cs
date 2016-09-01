@@ -132,7 +132,7 @@ namespace UniversalMarkdown.Parse.Elements {
                         // 5. Etcetera.
 
                         var info=markdown.Substring(lineInfo.StartOfLine, lineInfo.EndOfLine-lineInfo.StartOfLine);
-                        Console.WriteLine(info);
+                        //Console.WriteLine(info);
 
                         // Stack
                         if (markdown.Substring(lineInfo.StartOfLine).TrimStart().StartsWith("- [gdb with lua")) {
